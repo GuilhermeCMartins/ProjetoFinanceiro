@@ -7,6 +7,8 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { styled } from "@/app/stitches.config";
 import { Divider } from "@mui/material";
+import useAuth from "@/app/store/useAuth";
+import { useRouter } from "next/navigation";
 
 const AvatarContainer = styled("div", {
   display: "flex",
@@ -33,13 +35,20 @@ const TextContainer = styled("div", {
 
 export default function AccountMenu() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const { user, signOut } = useAuth();
   const open = Boolean(anchorEl);
+  const router = useRouter();
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+  
   const handleClose = () => {
+    signOut();
     setAnchorEl(null);
+    router.push("/login");
   };
+
   return (
     <AvatarContainer>
       <React.Fragment>
@@ -99,8 +108,8 @@ export default function AccountMenu() {
           <MenuItem onClick={handleClose}>Logout</MenuItem>
         </Menu>
         <TextContainer>
-          <h3>Andrew</h3>
-          <h4>Email</h4>
+          <h3>Email</h3>
+          <h4>{user?.email}</h4>
         </TextContainer>
       </React.Fragment>
     </AvatarContainer>

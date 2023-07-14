@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent, ChangeEvent } from "react";
+import { useEffect, useState, FormEvent, useMemo } from "react";
 import AccountMenu from "../components/accountMenu";
 import Cards from "../components/cards";
 import Container from "../components/container";
@@ -21,6 +21,12 @@ import Image from "next/image";
 import CreditCardContainer from "../components/CreditCardContainer";
 import TextMiniCards from "../components/text-mini-cards";
 import withAuth from "../HOCs";
+import FormDialog from "../components/dialogCategory";
+
+import SwiperCore, { Navigation } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/swiper-bundle.css";
+SwiperCore.use([Navigation]);
 
 const links = [
   {
@@ -149,6 +155,37 @@ const Page = () => {
     0
   );
 
+  const categoryExpenses = useMemo(() => {
+    if (!walletData || !withdrawalTransactions) return {};
+
+    const categoryExpensesMap: { [categoryId: string]: number } = {};
+    const totalExpenses = withdrawalTransactions.reduce(
+      (total, transaction) => total + transaction.amount,
+      0
+    );
+
+    withdrawalTransactions.forEach((transaction) => {
+      const { category, amount } = transaction;
+
+      if (categoryExpensesMap[category.id]) {
+        categoryExpensesMap[category.id] += amount;
+      } else {
+        categoryExpensesMap[category.id] = amount;
+      }
+    });
+
+    const categoryPercentageMap: { [categoryId: string]: number } = {};
+
+    walletData.categories.forEach((category) => {
+      const categoryExpense = categoryExpensesMap[category.id] || 0;
+      const categoryPercentage = (categoryExpense / totalExpenses) * 100;
+
+      categoryPercentageMap[category.id] = categoryPercentage;
+    });
+
+    return categoryPercentageMap;
+  }, [walletData, withdrawalTransactions]);
+
   const walletsCollectionRef = collection(db, "wallets");
 
   return (
@@ -165,7 +202,7 @@ const Page = () => {
           </Title>
           <AccountMenu />
         </Navbar>
-        <div style={{ display: "flex", gap: "2rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-evenly" }}>
           <div>
             <Cards container="cards">
               <h1>Cartão de crédito</h1>
@@ -204,48 +241,81 @@ const Page = () => {
             <Cards container="transactionHistory">
               <h3>Transaction history</h3>
               {walletData?.transactions ? (
-                <TransactionGrid transaction={walletData.transactions} />
+                <TransactionGrid wallet={walletData} />
               ) : (
                 <p>No transactions found.</p>
               )}
             </Cards>
           </div>
           <div>
-            <h1>
-              Objetivos
-              <button>
-                <Image
-                  src="/basic/plusButton.svg"
-                  width={30}
-                  height={30}
-                  alt="+"
-                />
-              </button>
-            </h1>
-            <div style={{ display: "flex", gap: "1rem" }}>
-              {walletData?.goals.map((goal) => {
-                const goalDate = new Date(goal.deadline);
-                const goalDay = goalDate.getDate();
-                const goalMonth = goalDate.getMonth() + 1;
-                const goalYear = goalDate.getFullYear();
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <h1>Objetivos</h1>
+              <FormDialog />
+            </div>
 
-                return (
-                  <Cards key={goal.id} container="miniCards">
-                    <TextMiniCards>
-                      <h3>R${goal.targetAmount}</h3>
-                      <h4>{`${goalDay}-${goalMonth}-${goalYear}`}</h4>
-                    </TextMiniCards>
-                    <h3>{goal.description}</h3>
-                  </Cards>
-                );
-              })}
+            <div
+              style={{
+                display: "flex",
+                gap: "1rem",
+                maxWidth: "500px",
+              }}
+            >
+              {walletData?.goals && walletData.goals.length > 0 ? (
+                <Swiper
+                  breakpoints={{
+                    2000: {
+                      slidesPerView: Math.min(walletData.goals.length, 3),
+                      slidesPerGroup: 1,
+                      spaceBetween: 30,
+                    },
+                    1600: {
+                      slidesPerView: Math.min(walletData.goals.length, 3),
+                      slidesPerGroup: 1,
+                      spaceBetween: 30,
+                    },
+                    1450: {
+                      slidesPerView: Math.min(walletData.goals.length, 3),
+                      slidesPerGroup: 1,
+                      spaceBetween: 30,
+                    },
+                  }}
+                  navigation={true}
+                  modules={[Navigation]}
+                  centeredSlides={true}
+                  preventInteractionOnTransition={true}
+                  className="mySwiper"
+                >
+                  {walletData.goals.map((goal) => (
+                    <SwiperSlide key={goal.id}>
+                      <Cards container="miniCards">
+                        <TextMiniCards>
+                          <h3>R${goal.targetAmount}</h3>
+                        </TextMiniCards>
+                        <h3>{goal.description}</h3>
+                      </Cards>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              ) : (
+                <p>No goals found.</p>
+              )}
             </div>
 
             <div>
               <h3>Estatísticas de resultados</h3>
-              <LinearWithValueLabel title="Compras" percentage={30} />
-              <LinearWithValueLabel title="Viagem" percentage={30} />
-              <LinearWithValueLabel title="Eletronicos" percentage={40} />
+              {walletData?.categories.map((category) => (
+                <LinearWithValueLabel
+                  key={category.id}
+                  title={category.name}
+                  percentage={categoryExpenses[category.id] || 0}
+                />
+              ))}
             </div>
             <Cards container="newTransaction">
               <h3>Nova transação</h3>

@@ -1,17 +1,17 @@
-type Transaction = {
+export type Transaction = {
     id: string;
     description: string;
     amount: number;
-    category: string;
+    category: Category;
     type: string;
 };
 
-type Category = {
+export type Category = {
     id: string;
     name: string;
 };
 
-type Goal = {
+export type Goal = {
     id: string;
     description: string;
     targetAmount: number;

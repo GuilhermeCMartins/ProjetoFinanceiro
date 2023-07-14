@@ -1,6 +1,7 @@
 import { collection, query, where, getDocs, DocumentData } from "firebase/firestore";
 import { db } from "../firebase/firebase";
-import { WalletData } from "../../app/types/walletType";
+import { WalletData } from "@/app/types/walletType";
+
 
 export const getWalletByUserId = async (userId: string): Promise<WalletData | null> => {
     try {

@@ -3,50 +3,56 @@ import { db } from "@/app/utils/firebase/firebase";
 import { TextField, Button, Select, MenuItem } from "@mui/material";
 import { arrayUnion, collection, doc, updateDoc } from "firebase/firestore";
 import { FormEvent, useState } from "react";
+import { WalletData, Category, Transaction } from "@/app/types/walletType";
 
 export default function NewTransaction() {
   const [newTransaction, setNewTransaction] = useState("");
   const [newTransactionAmount, setNewTransactionAmount] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  );
   const [transactionType, setTransactionType] = useState("deposit");
   const { setWalletData, walletData } = useWallet();
 
   const addTransaction = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const newTransactionData = {
-      id: Date.now().toString(),
-      description: newTransaction,
-      amount: newTransactionAmount,
-      category: selectedCategory,
-      type: transactionType,
-    };
-
-    if (walletData) {
-      const updatedWalletData = {
-        ...walletData,
-        transactions: [...walletData.transactions, newTransactionData],
-        balance:
-          transactionType === "deposit"
-            ? walletData.balance + newTransactionAmount
-            : walletData.balance - newTransactionAmount,
+    if (selectedCategory) {
+      const newTransactionData: Transaction = {
+        id: Date.now().toString(),
+        description: newTransaction,
+        amount: newTransactionAmount,
+        category: selectedCategory,
+        type: transactionType,
       };
 
-      setWalletData(updatedWalletData);
+      if (walletData) {
+        const updatedWalletData: WalletData = {
+          ...walletData,
+          transactions: [...walletData.transactions, newTransactionData],
+          balance:
+            transactionType === "deposit"
+              ? walletData.balance + newTransactionAmount
+              : walletData.balance - newTransactionAmount,
+        };
 
-      try {
-        await updateDoc(doc(walletsCollectionRef, walletData.walletId), {
-          transactions: arrayUnion(newTransactionData),
-          balance: updatedWalletData.balance,
-        });
-      } catch (error) {
-        console.log("Erro ao adicionar transação no Firestore:", error);
+        setWalletData(updatedWalletData);
+
+        try {
+          await updateDoc(doc(walletsCollectionRef, walletData.walletId), {
+            transactions: arrayUnion(newTransactionData),
+            balance: updatedWalletData.balance,
+          });
+        } catch (error) {
+          console.log("Erro ao adicionar transação no Firestore:", error);
+        }
       }
     }
 
     setNewTransaction("");
     setNewTransactionAmount(0);
   };
+
   const walletsCollectionRef = collection(db, "wallets");
 
   return (
@@ -74,9 +80,13 @@ export default function NewTransaction() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <Select
-            value={selectedCategory}
+            value={selectedCategory?.id || ""}
             onChange={(event) => {
-              setSelectedCategory(event.target.value);
+              const categoryId = event.target.value;
+              const selectedCategory = walletData?.categories?.find(
+                (category) => category.id === categoryId
+              );
+              setSelectedCategory(selectedCategory || null);
             }}
             sx={{ minWidth: "200px" }}
             size="small"

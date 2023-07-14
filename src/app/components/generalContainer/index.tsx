@@ -3,9 +3,10 @@ import { styled } from "@/app/stitches.config";
 
 const GeneralContainer = styled("div", {
   display: "flex",
+  justifyContent: "space-evenly",
   width: "95%",
-  height: "95vh",
-  padding: "0 30px",
+  height: "fit-content",
+  padding: "10px 30px",
   margin: "0 auto",
   gap: "3%",
   borderRadius: "59px",

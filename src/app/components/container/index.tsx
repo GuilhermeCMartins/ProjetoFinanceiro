@@ -1,9 +1,9 @@
 import React from "react";
-import styled from "styled-components";
-
-const CustomContainer = styled.div`
-  width: 83%;
-`;
+import { styled } from "@/app/stitches.config";
+const CustomContainer = styled("div", {
+  width: "95%",
+  height: "fit-content",
+});
 
 type CustomContainerProps = {
   children: React.ReactNode;
