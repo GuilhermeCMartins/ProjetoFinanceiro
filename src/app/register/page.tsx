@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import signUp from "../utils/auth/signup";
 import { createWallet } from "../utils/wallet/wallet";
+import ContainerForm from "../components/register/form";
+import FormRegister from "../components/register/container";
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -32,7 +34,8 @@ export default function Page() {
   };
 
   return (
-    <>
+    <ContainerForm>
+      <h1>Registro</h1>
       <FormControl>
         <TextField label="Email" value={email} onChange={handleEmailChange} />
         <TextField
@@ -45,6 +48,6 @@ export default function Page() {
           Registrar
         </Button>
       </FormControl>
-    </>
+    </ContainerForm>
   );
 }

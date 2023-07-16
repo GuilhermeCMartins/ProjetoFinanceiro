@@ -4,6 +4,8 @@ import { TextField, Button, FormControl } from "@mui/material";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import useAuth from "@/app/store/useAuth";
+import ContainerForm from "../components/register/form";
+import FormRegister from "../components/register/container";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -30,17 +32,20 @@ export default function LoginPage() {
   };
 
   return (
-    <FormControl>
-      <TextField label="Email" value={email} onChange={handleEmailChange} />
-      <TextField
-        label="Senha"
-        type="password"
-        value={password}
-        onChange={handlePasswordChange}
-      />
-      <Button variant="contained" onClick={handleSubmit}>
-        Entrar
-      </Button>
-    </FormControl>
+    <ContainerForm>
+      <FormRegister>
+        <h1>Login</h1>
+        <TextField label="Email" value={email} onChange={handleEmailChange} />
+        <TextField
+          label="Senha"
+          type="password"
+          value={password}
+          onChange={handlePasswordChange}
+        />
+        <Button variant="contained" onClick={handleSubmit}>
+          Entrar
+        </Button>
+      </FormRegister>
+    </ContainerForm>
   );
 }
