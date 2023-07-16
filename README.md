@@ -1,5 +1,3 @@
-O Projeto foi desenvolvido em nextjs, com typescript.
-
 ## Introdução
 
 Este é um teste para a IN8, o foco era realizar uma aplicação financeira com objetivos de:
@@ -22,15 +20,22 @@ Este é um teste para a IN8, o foco era realizar uma aplicação financeira com 
 
 ## Como usar
 
-Crie um .env no root do aplicativo. 
-
-NEXT_PUBLIC_FIREBASE_API_KEY="SUA_KEY"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="SUA_KEY"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="SUA_KEY"
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="SUA_KEY"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="SUA_KEY"
-NEXT_PUBLIC_FIREBASE_APP_ID="SUA_KEY"
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="SUA_KEY"
+Modifique o .env no root do aplicativo. 
+.env
+```js
+  NEXT_PUBLIC_FIREBASE_API_KEY="<api-key>"
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="<api-key>"
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID="<api-key>"
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="<api-key>"
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="<api-key>"
+  NEXT_PUBLIC_FIREBASE_APP_ID="<api-key>"
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="<api-key>"
+```
+Como achar essas informações?
+* Adicione o Firestore ao projeto
+* Adicione um app do tipo web
+* Configure o SDK com NPM
+* Copie o arquivo gerado e atualize os dados
 
 -> npm run dev
 
