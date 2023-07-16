@@ -45,3 +45,9 @@ Como achar essas informações?
 ## Tempo de realização
 
 - Total de 12 horas para realização do projeto.
+
+## Rotas
+
+- /login
+- /register
+- /dashboard (Precisa estar autenticado)
