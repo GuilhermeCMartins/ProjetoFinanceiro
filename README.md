@@ -21,7 +21,6 @@ Este é um teste para a IN8, o foco era realizar uma aplicação financeira com 
 ## Como usar
 
 Modifique o .env no root do aplicativo. 
-.env
 ```js
   NEXT_PUBLIC_FIREBASE_API_KEY="<api-key>"
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="<api-key>"
