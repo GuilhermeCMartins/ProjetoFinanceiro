@@ -18,6 +18,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/sidebar/logo.svg" />
+      </head>
       <body className={inter.className}>
         <ServerStylesheet>{children}</ServerStylesheet>
         <ToastContainer />

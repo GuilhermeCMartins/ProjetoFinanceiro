@@ -4,6 +4,7 @@ export type Transaction = {
     amount: number;
     category: Category;
     type: string;
+    date: string;
 };
 
 export type Category = {
@@ -16,7 +17,7 @@ export type Goal = {
     description: string;
     targetAmount: number;
     currentAmount: number;
-    deadline: Date;
+    deadline: string;
 };
 
 export type WalletData = {

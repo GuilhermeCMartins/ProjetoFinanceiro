@@ -1,4 +1,3 @@
-import React from "react";
 import { styled } from "@/app/stitches.config";
 
 const CCContainer = styled("div", {
@@ -76,22 +75,7 @@ const CCContainer = styled("div", {
   },
 });
 
-type CustomContainerProps = {
-  children: React.ReactNode;
-  type?: "left" | "right";
-  balance?: "current" | "income" | "outcome";
-};
 
-const CreditCardContainer: React.FC<CustomContainerProps> = ({
-  children,
-  type,
-  balance,
-}) => {
-  return (
-    <CCContainer type={type} balance={balance}>
-      {children}
-    </CCContainer>
-  );
-};
-
-export default CreditCardContainer;
+export {
+  CCContainer
+}

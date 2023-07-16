@@ -15,8 +15,9 @@ const CardsContainer = styled("div", {
       },
       transactionHistory: {
         boxSizing: "border-box",
-        width: "600px",
+        width: "630px",
         height: "fit-content",
+        padding: "0 1rem",
         h3: {
           margin: "1rem 2rem",
           paddingTop: "1.5rem",

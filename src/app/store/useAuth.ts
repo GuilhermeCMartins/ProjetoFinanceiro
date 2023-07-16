@@ -6,6 +6,7 @@ import { firebase_app } from "../utils/firebase/firebase";
 
 type AuthState = {
     user: User | null;
+    setUser: (user: User | null) => void; 
     signIn: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
 };
@@ -14,6 +15,7 @@ const auth = getAuth(firebase_app);
 
 const useAuth = create<AuthState>((set) => ({
     user: null,
+    setUser: (user) => set({ user }),
     signIn: async (email, password) => {
         try {
             const result = await signInWithEmailAndPassword(auth, email, password);

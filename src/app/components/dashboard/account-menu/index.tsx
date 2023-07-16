@@ -5,33 +5,10 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-import { styled } from "@/app/stitches.config";
 import { Divider } from "@mui/material";
 import useAuth from "@/app/store/useAuth";
 import { useRouter } from "next/navigation";
-
-const AvatarContainer = styled("div", {
-  display: "flex",
-  justifyContent: "flex-start",
-  alignItems: "center",
-  margin: "1rem 2rem",
-  gap: "0.75rem",
-});
-
-const TextContainer = styled("div", {
-  h3: {
-    fontSize: "14px",
-    fontWeight: "600",
-    color: "#404040",
-    margin: "0 0 0.3rem 0",
-  },
-  h4: {
-    fontSize: "14px",
-    fontWeight: "400",
-    color: "#AEAEAE",
-    margin: 0,
-  },
-});
+import { AvatarContainer, TextContainer } from "./style";
 
 export default function AccountMenu() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -42,7 +19,7 @@ export default function AccountMenu() {
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleClose = () => {
     signOut();
     setAnchorEl(null);

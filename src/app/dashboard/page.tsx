@@ -1,23 +1,39 @@
 "use client";
-import { useEffect, useState, FormEvent, ChangeEvent } from "react";
-import { TextField, Button, Select, MenuItem } from "@mui/material";
+
+import { useEffect, useState, useMemo } from "react";
+import AccountMenu from "../components/dashboard/account-menu";
+import Cards from "../components/basic/cards";
+import Container from "../components/basic/container";
+import General from "../components/basic/generalContainer";
+import Navbar from "../components/basic/navbar";
+import LinearWithValueLabel from "../components/dashboard/progress-bar";
+import Sidebar from "../components/sidebar";
+import Links from "../components/sidebar/links";
+import Title from "../components/dashboard/title";
+import TransactionGrid from "../components/dashboard/transaction-grid";
 import useAuth from "@/app/store/useAuth";
 import useWallet from "@/app/store/useWallet";
-import { collection, updateDoc, arrayUnion, doc } from "firebase/firestore";
-import withAuth from "../HOCs";
-import { db } from "../utils/firebase/firebase";
 import { getWalletByUserId } from "../utils/wallet/getWalletByUserId";
+import NewTransaction from "../components/dashboard/new-transaction";
+import Image from "next/image";
+import CreditCardContainer from "../components/dashboard/creditcard-container";
+import TextMiniCards from "../components/basic/cards/text-mini-cards";
+import withAuth from "../HOCs";
+import FormDialog from "../components/dashboard/dialog-objective";
+import Graphs from "../components/dashboard/graphs";
+
+import SwiperCore, { Navigation } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/swiper-bundle.css";
+import GraphDialog from "../components/dashboard/dialogGraph";
+import { Transaction } from "../types/walletType";
+SwiperCore.use([Navigation]);
 
 const Page = () => {
   const { user } = useAuth();
   const { setWalletData, walletData } = useWallet();
-  const [loading, setLoading] = useState(true);
-  const [newCategory, setNewCategory] = useState("");
-  const [newGoal, setNewGoal] = useState("");
-  const [newTransaction, setNewTransaction] = useState("");
-  const [newTransactionAmount, setNewTransactionAmount] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [transactionType, setTransactionType] = useState("deposit");
+  const [depositData, setDepositData] = useState<Transaction[]>();
+  const [withdrawData, setWithdrawData] = useState<Transaction[]>();
 
   useEffect(() => {
     if (user) {
@@ -25,10 +41,18 @@ const Page = () => {
         try {
           const walletData = await getWalletByUserId(user.id);
           setWalletData(walletData);
-          setLoading(false);
+
+          const depositTransactions = walletData?.transactions.filter(
+            (transaction) => transaction.type === "deposit"
+          );
+          const withdrawalTransactions = walletData?.transactions.filter(
+            (transaction) => transaction.type === "withdrawal"
+          );
+
+          setDepositData(depositTransactions);
+          setWithdrawData(withdrawalTransactions);
         } catch (error) {
           console.log("Erro ao obter a carteira:", error);
-          setLoading(false);
         }
       };
 
@@ -36,216 +60,216 @@ const Page = () => {
     }
   }, [user, setWalletData]);
 
-  const addCategory = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const totalDeposits = depositData?.reduce(
+    (total, transaction) => total + transaction.amount,
+    0
+  );
+  const totalWithdrawals = withdrawData?.reduce(
+    (total, transaction) => total + transaction.amount,
+    0
+  );
 
-    const newCategoryData = {
-      id: Date.now().toString(),
-      name: newCategory,
-    };
+  const categoryExpenses = useMemo(() => {
+    if (!walletData || !withdrawData) return {};
 
-    if (walletData) {
-      const updatedWalletData = {
-        ...walletData,
-        categories: [...walletData.categories, newCategoryData],
-      };
+    const categoryExpensesMap: { [categoryId: string]: number } = {};
+    const totalExpenses = withdrawData.reduce(
+      (total, transaction) => total + transaction.amount,
+      0
+    );
 
-      setWalletData(updatedWalletData);
+    withdrawData.forEach((transaction) => {
+      const { category, amount } = transaction;
 
-      try {
-        await updateDoc(doc(walletsCollectionRef, walletData.walletId), {
-          categories: arrayUnion(newCategoryData),
-        });
-      } catch (error) {
-        console.log("Erro ao adicionar categoria no Firestore:", error);
+      if (categoryExpensesMap[category?.id]) {
+        categoryExpensesMap[category?.id] += amount;
+      } else {
+        categoryExpensesMap[category?.id] = amount;
       }
-    }
+    });
 
-    setNewCategory("");
-  };
+    const categoryPercentageMap: { [categoryId: string]: number } = {};
 
-  const addGoal = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+    walletData.categories.forEach((category) => {
+      const categoryExpense = categoryExpensesMap[category.id] || 0;
+      const categoryPercentage = (categoryExpense / totalExpenses) * 100;
 
-    const newGoalData = {
-      id: Date.now().toString(),
-      description: newGoal,
-      targetAmount: 0,
-      currentAmount: 0,
-      deadline: new Date(),
-    };
+      categoryPercentageMap[category.id] = categoryPercentage;
+    });
 
-    if (walletData) {
-      const updatedWalletData = {
-        ...walletData,
-        walletId: walletData.walletId,
-        goals: [...walletData.goals, newGoalData],
-      };
-
-      setWalletData(updatedWalletData);
-
-      try {
-        await updateDoc(doc(walletsCollectionRef, walletData.walletId), {
-          goals: arrayUnion(newGoalData),
-        });
-      } catch (error) {
-        console.log("Erro ao adicionar meta no Firestore:", error);
-      }
-    }
-
-    setNewGoal("");
-  };
-
-  const addTransaction = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const newTransactionData = {
-      id: Date.now().toString(),
-      description: newTransaction,
-      amount: newTransactionAmount,
-      category: selectedCategory,
-      type: transactionType,
-    };
-
-    if (walletData) {
-      const updatedWalletData = {
-        ...walletData,
-        transactions: [...walletData.transactions, newTransactionData],
-        balance:
-          transactionType === "deposit"
-            ? walletData.balance + newTransactionAmount
-            : walletData.balance - newTransactionAmount,
-      };
-
-      setWalletData(updatedWalletData);
-
-      try {
-        await updateDoc(doc(walletsCollectionRef, walletData.walletId), {
-          transactions: arrayUnion(newTransactionData),
-          balance: updatedWalletData.balance,
-        });
-      } catch (error) {
-        console.log("Erro ao adicionar transação no Firestore:", error);
-      }
-    }
-
-    setNewTransaction("");
-    setNewTransactionAmount(0);
-  };
-
-  const walletsCollectionRef = collection(db, "wallets");
+    return categoryPercentageMap;
+  }, [walletData, withdrawData]);
 
   return (
-    <>
-      <h1>Dashboard</h1>
-      {loading ? (
-        <p>Carregando...</p>
-      ) : (
-        <div>
-          <h1>{user?.email}</h1>
-          <h2>Carteira</h2>
-          <p>Saldo: R${walletData?.balance}</p>
-          <h2>Categorias</h2>
-          {walletData?.categories?.map((category) => (
-            <p key={category.id}>{category.name}</p>
-          ))}
-          <form onSubmit={addCategory}>
-            <TextField
-              label="Nome da Categoria"
-              value={newCategory}
-              onChange={(event) => setNewCategory(event.target.value)}
-            />
-            <Button type="submit" variant="contained">
-              Adicionar Categoria
-            </Button>
-          </form>
-          <h2>Metas</h2>
-          {walletData?.goals?.map((goal) => (
-            <p key={goal.id}>{goal.description}</p>
-          ))}
-          <form onSubmit={addGoal}>
-            <TextField
-              label="Descrição da Meta"
-              value={newGoal}
-              onChange={(event) => setNewGoal(event.target.value)}
-            />
-            <Button type="submit" variant="contained">
-              Adicionar Meta
-            </Button>
-          </form>
-          <h2>Transações</h2>
-          <div>
-            <h3>Saques</h3>
-            {walletData?.transactions
-              ?.filter((transaction) => transaction.type === "withdrawal")
-              .map((transaction) => (
-                <p key={transaction.id}>
-                  {transaction.description} {transaction.amount}
-                  {
-                    walletData.categories.find(
-                      (category) => category.id === transaction.category
-                    )?.name
-                  }
-                </p>
-              ))}
-          </div>
-          <div>
-            <h3>Depósitos</h3>
-            {walletData?.transactions
-              ?.filter((transaction) => transaction.type === "deposit")
-              .map((transaction) => (
-                <p key={transaction.id}>
-                  {transaction.description} {transaction.amount}
-                  {
-                    walletData.categories.find(
-                      (category) => category.id === transaction.category
-                    )?.name
-                  }
-                </p>
-              ))}
-          </div>
-          <form onSubmit={addTransaction}>
-            <TextField
-              label="Descrição da Transação"
-              value={newTransaction}
-              onChange={(event) => setNewTransaction(event.target.value)}
-            />
-            <TextField
-              label="Valor"
-              type="number"
-              value={newTransactionAmount}
-              onChange={(event) =>
-                setNewTransactionAmount(Number(event.target.value))
-              }
-            />
-            <Select
-              value={selectedCategory}
-              onChange={(event) => {
-                setSelectedCategory(event.target.value);
-              }}
-            >
-              {walletData?.categories?.map((category) => (
-                <MenuItem key={category.id} value={category.id}>
-                  {category.name}
-                </MenuItem>
-              ))}
-            </Select>
-            <Select
-              value={transactionType}
-              onChange={(event) => {
-                setTransactionType(event.target.value as string);
-              }}
-            >
-              <MenuItem value="deposit">Depósito</MenuItem>
-              <MenuItem value="withdrawal">Saque</MenuItem>
-            </Select>
-            <Button type="submit" variant="contained">
-              Adicionar Transação
-            </Button>
-          </form>
+    <General>
+      <Sidebar>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+          }}
+        >
+          <Image src="/sidebar/logo.svg" width={55} height={55} alt="" />
+          <h4>Financial </h4>
         </div>
-      )}
-    </>
+
+        <Links />
+      </Sidebar>
+      <Container>
+        <Navbar>
+          <Title>
+            <h1>Registro Semanal</h1>
+            <h3>Veja o resumo das suas transações semanais aqui</h3>
+          </Title>
+          <AccountMenu />
+        </Navbar>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-evenly",
+            gap: "2rem",
+          }}
+        >
+          <div>
+            <Cards container="cards">
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h1>Cartão de crédito</h1>
+                <GraphDialog
+                  depositData={depositData || []}
+                  withdrawalData={withdrawData || []}
+                />
+              </div>
+
+              <div style={{ display: "flex" }}>
+                <CreditCardContainer type="left">
+                  <Image
+                    src="/basic/card.svg"
+                    width={320}
+                    height={206}
+                    alt=""
+                  />
+                </CreditCardContainer>
+                <CreditCardContainer type="right">
+                  <CreditCardContainer balance="current">
+                    <h3>
+                      <span>$</span>
+                      {walletData?.balance}
+                    </h3>
+                    <h4>Balanço atual</h4>
+                  </CreditCardContainer>
+                  <CreditCardContainer balance="income">
+                    <h3>
+                      <span>$</span> {totalDeposits}
+                    </h3>
+                    <h4>Depósitos</h4>
+                  </CreditCardContainer>
+                  <CreditCardContainer balance="outcome">
+                    <h3>
+                      <span>$</span> {totalWithdrawals}
+                    </h3>
+                    <h4>Saques</h4>
+                  </CreditCardContainer>
+                </CreditCardContainer>
+              </div>
+            </Cards>
+            <Cards container="transactionHistory">
+              <h3>Histórico de transações</h3>
+              {walletData?.transactions ? (
+                <TransactionGrid wallet={walletData} />
+              ) : (
+                <p>Sem transações realizadas.</p>
+              )}
+            </Cards>
+          </div>
+          <div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <h1>Objetivos</h1>
+              <FormDialog />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "1rem",
+                maxWidth: "500px",
+              }}
+            >
+              {walletData?.goals && walletData.goals.length > 0 ? (
+                <Swiper
+                  breakpoints={{
+                    2000: {
+                      slidesPerView: Math.min(walletData.goals.length, 3),
+                      slidesPerGroup: 1,
+                      spaceBetween: 30,
+                    },
+                    1600: {
+                      slidesPerView: Math.min(walletData.goals.length, 3),
+                      slidesPerGroup: 1,
+                      spaceBetween: 30,
+                    },
+                    1450: {
+                      slidesPerView: Math.min(walletData.goals.length, 3),
+                      slidesPerGroup: 1,
+                      spaceBetween: 30,
+                    },
+                  }}
+                  navigation={true}
+                  modules={[Navigation]}
+                  centeredSlides={true}
+                  preventInteractionOnTransition={true}
+                  className="mySwiper"
+                >
+                  {walletData.goals.map((goal) => (
+                    <SwiperSlide key={goal.id}>
+                      <Cards container="miniCards">
+                        <TextMiniCards>
+                          <h3>R${goal.targetAmount}</h3>
+                        </TextMiniCards>
+                        <h3>{goal.description}</h3>
+                      </Cards>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              ) : (
+                <p>Sem objetivos registrados.</p>
+              )}
+            </div>
+
+            <div style={{ marginTop: "1rem", marginBottom: "2rem" }}>
+              <h3>Estatísticas de resultados</h3>
+              <Graphs>
+                {walletData?.categories.map((category) => (
+                  <LinearWithValueLabel
+                    key={category.id}
+                    title={category.name}
+                    percentage={categoryExpenses[category.id] || 0}
+                  />
+                ))}
+              </Graphs>
+            </div>
+
+            <Cards container="newTransaction">
+              <h3>Nova transação</h3>
+              <NewTransaction />
+            </Cards>
+          </div>
+        </div>
+      </Container>
+    </General>
   );
 };
 

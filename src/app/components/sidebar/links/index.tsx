@@ -37,16 +37,21 @@ const LinksComponentWrapper = styled("div", {
   },
 });
 
-type LinksComponentProps = {
-  items: { label: string; href: string; image: string; imageActive: string }[];
-};
+const links = [
+  {
+    label: "Geral",
+    href: "/dashboard",
+    image: "/basic/overview.svg",
+    imageActive: "/basic/overviewActive.svg",
+  },
+];
 
-const Links: React.FC<LinksComponentProps> = ({ items }) => {
+const Links = () => {
   const pathname = usePathname();
 
   return (
     <LinksComponentWrapper>
-      {items.map((item, index) => (
+      {links.map((item, index) => (
         <a
           key={index}
           href={item.href}

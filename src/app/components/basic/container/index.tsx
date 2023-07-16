@@ -1,5 +1,6 @@
 import React from "react";
 import { styled } from "@/app/stitches.config";
+
 const CustomContainer = styled("div", {
   width: "95%",
   height: "fit-content",

@@ -17,19 +17,49 @@ export default function FormDialog() {
   const { setWalletData, walletData } = useWallet();
   const [newGoal, setNewGoal] = useState("");
   const [newDescription, setNewDescription] = useState("");
-  const [newTargetAmount, setNewTargetAmount] = useState("");
-  const [newCurrentAmount, setNewCurrentAmount] = useState("");
+  const [newTargetAmount, setNewTargetAmount] = useState(0);
+  const [newCurrentAmount, setNewCurrentAmount] = useState(0);
   const [newDeadline, setNewDeadline] = useState("");
+
+  const handleValidationErrors = () => {
+    if (!newDescription) {
+      toast.error("Descrição obrigatória.");
+      return true;
+    }
+
+    if (newTargetAmount <= 0) {
+      toast.error("A quantidade final tem que ser maior que zero.");
+      return true;
+    }
+    if (newCurrentAmount <= 0) {
+      toast.error("A quantidade atual tem que ser maior que zero.");
+      return true;
+    }
+
+    if (!newDeadline) {
+      toast.error("Escolha a deadline do objetivo.");
+      return true;
+    }
+
+    if (!walletData) {
+      toast.error("Wallet data not available.");
+      return true;
+    }
+  };
 
   const addGoal = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (handleValidationErrors()) {
+      return;
+    }
 
     const newGoalData = {
       id: Date.now().toString(),
       description: newDescription,
       targetAmount: Number(newTargetAmount),
       currentAmount: Number(newCurrentAmount),
-      deadline: new Date(newDeadline),
+      deadline: new Date().toString(),
     };
 
     if (walletData) {
@@ -53,8 +83,8 @@ export default function FormDialog() {
     toast.success("Objetivo adicionado com sucesso!");
     setNewGoal("");
     setNewDescription("");
-    setNewTargetAmount("");
-    setNewCurrentAmount("");
+    setNewTargetAmount(0);
+    setNewCurrentAmount(0);
     setNewDeadline("");
     setOpen(false);
   };
@@ -101,7 +131,7 @@ export default function FormDialog() {
               fullWidth
               variant="standard"
               value={newTargetAmount}
-              onChange={(e) => setNewTargetAmount(e.target.value)}
+              onChange={(e) => setNewTargetAmount(Number(e.target.value))}
             />
             <TextField
               autoFocus
@@ -112,7 +142,7 @@ export default function FormDialog() {
               fullWidth
               variant="standard"
               value={newCurrentAmount}
-              onChange={(e) => setNewCurrentAmount(e.target.value)}
+              onChange={(e) => setNewCurrentAmount(Number(e.target.value))}
             />
             <TextField
               margin="normal"

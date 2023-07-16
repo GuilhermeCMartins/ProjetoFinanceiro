@@ -15,7 +15,7 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       toast.success("Usuário logado com sucesso.");
-      router.push("/dashboardPage");
+      router.push("/dashboard");
     } catch (error) {
       toast.error("Algo deu errado com o login.");
     }
